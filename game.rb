@@ -2,6 +2,7 @@ require 'pry'
 
 require 'gosu'
 require_relative 'player'
+require_relative 'base'
 
 class TwoDeeGeo < Gosu::Window
   def initialize
@@ -12,6 +13,13 @@ class TwoDeeGeo < Gosu::Window
     @player = Player.new(self)
     # @player.jump_to(width / 2, height - height / 10)
     @player.jump_to(width / 2, height / 2)
+
+    @bases = []
+
+    base = Base.new(self)
+    base.jump_to(width / 2, height - height / 10)
+
+    @bases << base
   end
 
   def needs_cursor?; true; end
@@ -21,18 +29,36 @@ class TwoDeeGeo < Gosu::Window
     @player.turn_right if button_down?(Gosu::KbRight)
     @player.accelerate if button_down?(Gosu::KbUp)
     @player.reverse if button_down?(Gosu::KbDown)
-    @player.move_to(mouse_x, mouse_y) if button_down?(Gosu::MsLeft)
-    puts "collides!!!" if button_down?(Gosu::KbSpace) && @player.collides?(mouse_x, mouse_y)
+
+    if button_down?(Gosu::MsLeft)
+      base = clicked_base
+
+      if base
+        @player.move_to(base)
+      end
+    end
+
     @player.move
   end
 
   def draw
     @player.draw
-    # @background_image.draw(0, 0, 0, 5, 5)
+    @bases.each(&:draw)
   end
 
   def button_down(id)
     close if id == Gosu::KbEscape
+  end
+
+  def clicked_base
+    x = mouse_x
+    y = mouse_y
+
+    bases = @bases.select do |base|
+      base.collides?(x, y)
+    end
+
+    bases.any? ? bases.first : nil
   end
 
   private

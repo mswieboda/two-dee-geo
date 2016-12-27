@@ -1,5 +1,5 @@
 # two-dee-geo
-First attempt at a Gosu 2D Ruby game
+Attempt at a Gosu 2D Ruby game with geometric graphics
 
 # Installation
 ````
