@@ -12,7 +12,7 @@ class Base < OwnedObject
   MAX_REGENERATION = 10
 
   def initialize(window, owner)
-    super(window, owner, SIZE)
+    super(window, owner, SIZE * 2)
 
     @body.m = 99999
     @shape.object = self
@@ -26,6 +26,10 @@ class Base < OwnedObject
 
     # Ship generation
     @ship_generation_amount = @ship_ticks = 0
+  end
+
+  def size
+    SIZE
   end
 
   def draw
@@ -69,7 +73,13 @@ class Base < OwnedObject
   end
 
   def regenerate_health
-    return if health == @max_health || @taking_damage
+    return if @taking_damage
+
+    if health >= @max_health
+      @health = @max_health
+      return
+    end
+
     @health_ticks += 1
     if @health_ticks > 100 - @health_regeneration_amount
       @health += 1

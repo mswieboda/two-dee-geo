@@ -54,4 +54,9 @@ class OwnedObject
   def angle
     @body.a
   end
+
+  def close_to?(x2, y2, gap = 0)
+    gap += size
+    (x - x2).abs <= gap && (y - y2).abs <= gap
+  end
 end

@@ -17,7 +17,7 @@ class Player
   end
 
   def generate_ship(base)
-    return if @ships.size >= 50
+    return if @ships.size >= @max_ships
 
     ship = Ship.new(base.window, self)
 

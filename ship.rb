@@ -6,7 +6,7 @@ class Ship < OwnedObject
   attr_reader :window, :shape, :damage, :owner
 
   SIZE = 5
-  ROTATE_SPEED = 0.333
+  ROTATE_SPEED = 0.00333
 
   def initialize(window, owner)
     super(window, owner, SIZE * 0.75)
@@ -26,7 +26,7 @@ class Ship < OwnedObject
   end
 
   def stop
-    @body.apply_force(CP::Vec2.new(0.0, 0.0), CP::Vec2.new(0.0, 0.0))
+    @body.apply_force(CP::Vec2.new(-@body.f.x, -@body.f.y), CP::Vec2.new(0.0, 0.0))
   end
 
   def move
@@ -52,34 +52,23 @@ class Ship < OwnedObject
     if move_to_x && move_to_y
       @body.a = TwoDeeGeo.angle_between_points(x, y, move_to_x, move_to_y)
       accelerate
+
+      stop if close_to?(move_to_x, move_to_y)
     end
   end
 
   def auto_rotation
     if @rotate_around_obj
       obj = @rotate_around_obj
+      radius = obj.shape.radius
 
-      dx = dy = 0.0
+      # Add 180 since Y is negative
+      @rotating_angle ||= (TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y) + 180).gosu_to_radians
+      @rotating_angle += ROTATE_SPEED;
+      new_x = Math.cos(@rotating_angle) * radius;
+      new_y = Math.sin(@rotating_angle) * radius;
 
-      if x <= obj.x + obj.size / 0.75 &&
-        y <= obj.y - obj.size / 0.75
-        dx = 1
-      elsif x >= obj.x + obj.size / 0.75 &&
-        y <= obj.y + obj.size / 0.75
-        dy = 1
-      elsif x >= obj.x - obj.size / 0.75 &&
-        y >= obj.y + obj.size / 0.75
-        dx = -1
-      elsif x <= obj.x - obj.size / 0.75 &&
-        y >= obj.y - obj.size / 0.75
-        dy = -1
-      elsif x <= obj.x - obj.size / 0.75 &&
-        y <= obj.y - obj.size / 0.75
-        dx = -1
-      end
-
-      @body.a = CP::Vec2.new(dx, dy).to_angle
-      @body.apply_force(@body.a.radians_to_vec2 * ROTATE_SPEED, CP::Vec2.new(0.0, 0.0))
+      jump_to(obj.x + new_x, obj.y + new_y)
       @body.a = TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y)
 
       attack(obj) unless obj.health <= 0 || owner.owns?(obj)
@@ -95,16 +84,18 @@ class Ship < OwnedObject
   end
 
   def move_to_coords(x, y)
-    @rotate_around_obj = nil
     @move_to_obj = nil
+    @rotating_angle = nil
+    @rotate_around_obj = nil
     @move_to_x = x
     @move_to_y = y
   end
 
   def move_to_obj(obj)
-    @rotate_around_obj = nil
     @move_to_x = nil
     @move_to_y = nil
+    @rotating_angle = nil
+    @rotate_around_obj = nil
     @move_to_obj = obj
   end
 

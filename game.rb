@@ -8,6 +8,10 @@ require_relative 'owned_object'
 require_relative 'ship'
 require_relative 'base'
 
+def ppp(hash)
+  pp "#{hash}"
+end
+
 class TwoDeeGeo < Gosu::Window
   attr_accessor :space
 
@@ -36,6 +40,9 @@ class TwoDeeGeo < Gosu::Window
     base = Base.new(self, @enemy)
     base.jump_to(width / 2, height - height / 10)
     @bases << base
+
+    # Just for testing
+    @player.generate_ship(@player_base)
 
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
       ship = ship_shape.object
@@ -127,7 +134,8 @@ class TwoDeeGeo < Gosu::Window
     dx = x2 - x1
     radians = Math.atan2(dy, dx)
     degrees = radians * 180 / Math::PI
-    360 - degrees + 90
+    # Correction from Gosu vs Chipmunk
+    90 - degrees
   end
 end
 
