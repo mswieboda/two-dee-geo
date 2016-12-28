@@ -5,6 +5,7 @@ require 'chipmunk'
 require_relative 'numeric'
 require_relative 'player'
 require_relative 'owned_object'
+require_relative 'click_visual'
 require_relative 'ship'
 require_relative 'base'
 
@@ -24,6 +25,9 @@ class TwoDeeGeo < Gosu::Window
     @space = CP::Space.new
     @space.damping = 0.7
     @dt = (1.0/60.0)
+
+    @remove_shapes = []
+    @click_visuals = []
 
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
@@ -60,7 +64,6 @@ class TwoDeeGeo < Gosu::Window
       nil
     end
 
-    # @space.add_collision_func(:ship, :ship, &nil)
     @space.add_collision_func(:base, :base, &nil)
   end
 
@@ -68,15 +71,14 @@ class TwoDeeGeo < Gosu::Window
 
   def update
     SUBSTEPS.times do
+      @remove_shapes.each do |shape|
+        @click_visuals.delete_if { |cv| cv.shape == shape }
+        @space.remove_body(shape.body)
+        @space.remove_shape(shape)
+      end
+
       # Idle bases reset to regenerate if not being shot at
       @bases.each(&:idle)
-
-      # Move ships via mouse
-      if button_down?(Gosu::MsLeft)
-        move_ships(@player)
-      elsif button_down?(Gosu::KbSpace)
-        move_ships(@enemy)
-      end
 
       # Move all ships
       @players.flat_map(&:ships).each do |ship|
@@ -90,18 +92,28 @@ class TwoDeeGeo < Gosu::Window
       @bases.each(&:regenerate_health)
       @bases.each(&:generate_ships)
 
+      # Remove click visuals that are finished
+      @click_visuals.each(&:update)
+      cvs_to_remove = @click_visuals.select(&:destroy?).map(&:shape)
+      @remove_shapes += cvs_to_remove if cvs_to_remove.any?
+
       @space.step(@dt)
     end
   end
 
   def draw
     @bases.each(&:draw)
+    @click_visuals.each(&:draw)
     @players.flat_map(&:ships).each(&:draw)
   end
 
   def button_up(id)
     if id == Gosu::KbEscape
       close
+    elsif id == Gosu::MsLeft
+      move_ships(@player)
+    elsif id == Gosu::KbSpace
+      move_ships(@enemy)
     end
   end
 
@@ -112,6 +124,9 @@ class TwoDeeGeo < Gosu::Window
       player.ships.each { |s| s.move_to_obj(base) }
     else
       player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
+
+      # Create visual
+      @click_visuals << ClickVisual.new(self, player, mouse_x, mouse_y)
     end
   end
 

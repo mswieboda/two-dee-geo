@@ -11,6 +11,7 @@ class Ship < OwnedObject
   def initialize(window, owner)
     super(window, owner, SIZE * 0.75)
 
+    @shape.layers = 0b1
     @shape.object = self
     @shape.collision_type = :ship
 

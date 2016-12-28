@@ -17,6 +17,7 @@ class Base < OwnedObject
 
     @body.m = 99999
     @body.a = 0
+    @shape.layers = 0b1
     @shape.object = self
     @shape.collision_type = :base
 
