@@ -10,14 +10,15 @@ class Base < OwnedObject
   TEXT_SIZE = (SIZE * 0.6).round
   TEXT_FONT = "Courier New"
   MAX_REGENERATION = 10
+  ROTATE_SPEED = 0.1313
 
   def initialize(window, owner)
     super(window, owner, SIZE * 2)
 
     @body.m = 99999
+    @body.a = 0
     @shape.object = self
     @shape.collision_type = :base
-
 
     # Health
     @health_text = Gosu::Font.new(TEXT_SIZE, name: TEXT_FONT)
@@ -41,8 +42,6 @@ class Base < OwnedObject
     y3 = y + size
     c = @owner.color
 
-    Gosu.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
-
     # Inner diamond
     ix1 = ix3 = x
     ix2 = x + size / INNER_SIZE_RATIO
@@ -52,7 +51,10 @@ class Base < OwnedObject
     iy3 = y + size / INNER_SIZE_RATIO
     ic = Gosu::Color::BLACK
 
-    Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
+    Gosu.rotate(@body.a, x, y) do
+      Gosu.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
+      Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
+    end
 
     @health_text.draw_rel(health.to_i, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
   end
@@ -70,6 +72,8 @@ class Base < OwnedObject
 
   def idle
     @taking_damage = false
+    @body.a += ROTATE_SPEED
+    @body.a = 0 if @body.a >= 360
   end
 
   def regenerate_health

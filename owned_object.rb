@@ -12,10 +12,6 @@ class OwnedObject
 
     # Body
     @body = CP::Body.new(10, 100)
-    @body.a = 0
-    @body.p = CP::Vec2.new(0, 0)
-    @body.v = CP::Vec2.new(0, 0)
-    @body.f = CP::Vec2.new(0, 0)
 
     # Shape
     @shape = CP::Shape::Circle.new(@body, size, CP::Vec2.new(0, 0))

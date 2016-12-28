@@ -4,7 +4,7 @@ class Numeric
   end
 
   def radians_to_gosu
-    self * 180.0 / Math::PI + 90
+    90 - (self * 180.0 / Math::PI)
   end
 
   def radians_to_vec2

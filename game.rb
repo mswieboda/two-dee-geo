@@ -133,9 +133,7 @@ class TwoDeeGeo < Gosu::Window
     dy = -y2 - -y1
     dx = x2 - x1
     radians = Math.atan2(dy, dx)
-    degrees = radians * 180 / Math::PI
-    # Correction from Gosu vs Chipmunk
-    90 - degrees
+    radians.radians_to_gosu
   end
 end
 

@@ -21,7 +21,7 @@ class Player
 
     ship = Ship.new(base.window, self)
 
-    angle = rand(0..360) + 90
+    angle = rand(0..360)
     radians = angle.gosu_to_radians
     new_x = Math.cos(radians) * base.shape.radius;
     new_y = Math.sin(radians) * base.shape.radius;
