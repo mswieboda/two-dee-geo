@@ -92,6 +92,7 @@ class Ship < OwnedObject
   end
 
   def move_to_obj(obj)
+    return if @move_to_obj == obj || @rotate_around_obj == obj
     @move_to_x = nil
     @move_to_y = nil
     @rotating_angle = nil
