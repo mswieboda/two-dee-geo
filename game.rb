@@ -14,28 +14,26 @@ class TwoDeeGeo < Gosu::Window
   SUBSTEPS = 6
 
   def initialize
-    super(Gosu::available_width, Gosu::available_height, false)
+    super(Gosu::available_width, Gosu::available_height)
     self.caption = 'Two-Dee Geo!'
 
-
     @space = CP::Space.new
-    @space.damping = 0.8
-    # @space.gravity = CP::Vec2.new(0, 10)
+    @space.damping = 0.7
     @dt = (1.0/60.0)
 
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
     @players << @player
 
-    enemy = Player.new(Gosu::Color::FUCHSIA)
-    @players << enemy
+    @enemy = Player.new(Gosu::Color::FUCHSIA)
+    @players << @enemy
 
     @bases = []
     @player_base = base = Base.new(self, @player)
     base.jump_to(width / 2, height / 10)
     @bases << base
 
-    base = Base.new(self, enemy)
+    base = Base.new(self, @enemy)
     base.jump_to(width / 2, height - height / 10)
     @bases << base
 
@@ -43,19 +41,19 @@ class TwoDeeGeo < Gosu::Window
       ship = ship_shape.object
       base = base_shape.object
 
-      if ship.owner.owns?(base)
-        nil
-      else
+      if ship.moving_to?(base)
         # Stop
         ship.stop
 
         # Set to attack base
         ship.attack_base(base)
-
-        true
       end
+
+      # No physics collision
+      nil
     end
 
+    # @space.add_collision_func(:ship, :ship, &nil)
     @space.add_collision_func(:base, :base, &nil)
   end
 
@@ -66,15 +64,11 @@ class TwoDeeGeo < Gosu::Window
       # Idle bases reset to regenerate if not being shot at
       @bases.each(&:idle)
 
-      # Player mouse click event
+      # Move ships via mouse
       if button_down?(Gosu::MsLeft)
-        base = clicked_base
-
-        if base
-          @player.ships.each { |s| s.move_to_obj(base) }
-        else
-          @player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
-        end
+        move_ships(@player)
+      elsif button_down?(Gosu::KbSpace)
+        move_ships(@enemy)
       end
 
       # Move all ships
@@ -85,15 +79,11 @@ class TwoDeeGeo < Gosu::Window
       end
 
       # Base regeneration
-      @bases.each(&:increase_regeneration) if button_down?(Gosu::KbSpace)
+      @bases.each(&:increase_regeneration) if button_down?(Gosu::KbUp)
       @bases.each(&:regenerate_health)
       @bases.each(&:generate_ships)
 
       @space.step(@dt)
-    end
-
-    if button_down?(Gosu::KbSpace)
-      @owner.generate_ship(@player_base)
     end
   end
 
@@ -102,19 +92,32 @@ class TwoDeeGeo < Gosu::Window
     @players.flat_map(&:ships).each(&:draw)
   end
 
-  def button_down(id)
-    close if id == Gosu::KbEscape
+  def button_up(id)
+    if id == Gosu::KbEscape
+      close
+    end
+  end
+
+  def move_ships(player)
+    base = clicked_base
+
+    if base
+      player.ships.each { |s| s.move_to_obj(base) }
+    else
+      player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
+    end
   end
 
   def clicked_base
-    x = mouse_x
-    y = mouse_y
+    p = CP::Vec2.new(mouse_x, mouse_y)
 
-    bases = @bases.select do |base|
-      false # base.collides?(x, y)
+    bases = @bases.each do |base|
+      if base.shape.point_query(p)
+        return base
+      end
     end
 
-    bases.any? ? bases.first : nil
+    nil
   end
 
   private
@@ -126,39 +129,6 @@ class TwoDeeGeo < Gosu::Window
     degrees = radians * 180 / Math::PI
     360 - degrees + 90
   end
-
-  # def self.draw_circle(x0, y0, radius, c, thickness)
-  #   x = radius
-  #   y = 0
-  #   err = 0
-
-  #   while x >= y do
-  #     [
-  #       { x: x0 + x, y: y0 + y },
-  #       { x: x0 + y, y: y0 + x },
-  #       { x: x0 - y, y: y0 + x },
-  #       { x: x0 - x, y: y0 + y },
-  #       { x: x0 - x, y: y0 - y },
-  #       { x: x0 - y, y: y0 - x },
-  #       { x: x0 + y, y: y0 - x },
-  #       { x: x0 + x, y: y0 - y }
-  #     ].each do |point|
-  #       draw_pixel(point[:x], point[:y], c, thickness)
-  #     end
-
-  #     if err <= 0
-  #       y += 1;
-  #       err += 2*y + 1
-  #     else
-  #       x -= 1;
-  #       err -= 2*x + 1
-  #     end
-  #   end
-  # end
-
-  # def self.draw_pixel(x, y, c, thickness = 1)
-  #   Gosu.draw_line(x, y, c, x + 1, y, c, 0, mode = :default)
-  # end
 end
 
 window = TwoDeeGeo.new

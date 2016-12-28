@@ -6,8 +6,9 @@ class Base < OwnedObject
   attr_reader :window, :shape, :owner, :health
 
   SIZE = 10 * 5
-  INNER_SIZE_RATIO = 1.125
-  TEXT_SIZE = 30
+  INNER_SIZE_RATIO = 1.25
+  TEXT_SIZE = (SIZE * 0.6).round
+  TEXT_FONT = "Courier New"
   MAX_REGENERATION = 10
 
   def initialize(window, owner)
@@ -19,7 +20,7 @@ class Base < OwnedObject
 
 
     # Health
-    @health_text = Gosu::Font.new(TEXT_SIZE, name: "Courier New")
+    @health_text = Gosu::Font.new(TEXT_SIZE, name: TEXT_FONT)
     @health = @max_health = 1000
     @health_regeneration_amount = @health_ticks = 0
 
@@ -48,6 +49,7 @@ class Base < OwnedObject
     ic = Gosu::Color::BLACK
 
     Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
+
     @health_text.draw_rel(health.to_i, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
   end
 
@@ -87,7 +89,7 @@ class Base < OwnedObject
   def generate_ships
     @ship_ticks += 1
 
-    if @ship_ticks > 500 - @ship_generation_amount
+    if @ship_ticks > 500 - @ship_generation_amount && @health > 0
       @owner.generate_ship(self)
       @ship_ticks = 0
     end

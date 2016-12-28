@@ -3,7 +3,7 @@ require 'pry'
 require 'gosu'
 
 class OwnedObject
-  attr_reader :window, :size
+  attr_reader :window
 
   def initialize(window, owner, size)
     @window = window
@@ -24,6 +24,10 @@ class OwnedObject
 
     @window.space.add_body(@body)
     @window.space.add_shape(@shape)
+  end
+
+  def size
+    @size
   end
 
   def jump_to(x, y)

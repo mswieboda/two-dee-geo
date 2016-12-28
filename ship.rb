@@ -5,16 +5,14 @@ require 'gosu'
 class Ship < OwnedObject
   attr_reader :window, :shape, :damage, :owner
 
-  AMOUNT = 0.6
-  SIZE = 4 * 2
-  STOP_GAP = 15
+  SIZE = 5
+  ROTATE_SPEED = 0.333
 
   def initialize(window, owner)
-    super(window, owner, SIZE * 2)
+    super(window, owner, SIZE * 0.75)
 
     @shape.object = self
     @shape.collision_type = :ship
-    @shape.body.a = Math::PI / 2.0
 
     @damage = 0.01
   end
@@ -60,24 +58,6 @@ class Ship < OwnedObject
   def auto_rotation
     if @rotate_around_obj
       obj = @rotate_around_obj
-      # if x <= @rotate_around_obj.x + @rotate_around_obj.size / 2 &&
-      #   y <= @rotate_around_obj.y - @rotate_around_obj.size / 2
-      #   @vel_x += AMOUNT
-      # elsif x >= @rotate_around_obj.x + @rotate_around_obj.size / 2 &&
-      #   y <= @rotate_around_obj.y + @rotate_around_obj.size / 2
-      #   @vel_y += AMOUNT
-      # elsif x >= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
-      #   y >= @rotate_around_obj.y + @rotate_around_obj.size / 2
-      #   @vel_x -= AMOUNT
-      # elsif x <= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
-      #   y >= @rotate_around_obj.y - @rotate_around_obj.size / 2
-      #   @vel_y -= AMOUNT
-      # elsif x <= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
-      #   y <= @rotate_around_obj.y - @rotate_around_obj.size / 2
-      #   @vel_x -= AMOUNT
-      # end
-
-      # @angle = TwoDeeGeo.angle_between_points(x, y, @rotate_around_obj.x, @rotate_around_obj.y)
 
       dx = dy = 0.0
 
@@ -99,7 +79,7 @@ class Ship < OwnedObject
       end
 
       @body.a = CP::Vec2.new(dx, dy).to_angle
-      @body.apply_force(@body.a.radians_to_vec2 * 0.5, CP::Vec2.new(0.0, 0.0))
+      @body.apply_force(@body.a.radians_to_vec2 * ROTATE_SPEED, CP::Vec2.new(0.0, 0.0))
       @body.a = TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y)
 
       attack(obj) unless obj.health <= 0 || owner.owns?(obj)
@@ -128,6 +108,11 @@ class Ship < OwnedObject
     @move_to_obj = obj
   end
 
+  def moving_to?(obj)
+    return false unless obj
+    @move_to_obj == obj || @rotate_around_obj == obj
+  end
+
   def rotate_around(obj)
     @move_to_x = nil
     @move_to_y = nil
@@ -140,10 +125,11 @@ class Ship < OwnedObject
     x2 = x
     x3 = x - size
     y1 = y3 = y
-    y2 = y - size * 3
+    y2 = y - size * 2
     c = @owner.color
     Gosu.rotate(angle, x, y - size) do
-      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c, 0, mode = :default)
+      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c, 0)
+      Gosu.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c, 0)
     end
   end
 end
