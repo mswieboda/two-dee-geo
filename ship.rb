@@ -2,73 +2,44 @@ require 'pry'
 
 require 'gosu'
 
-class Ship
-  attr_reader :window, :damage, :owner
+class Ship < OwnedObject
+  attr_reader :window, :shape, :damage, :owner
 
   AMOUNT = 0.6
   SIZE = 4 * 2
   STOP_GAP = 15
 
   def initialize(window, owner)
-    @window = window
+    super(window, owner, SIZE * 2)
 
-    @x = @y = @vel_x = @vel_y = @angle = 0.0
-    @owner = owner
+    @shape.object = self
+    @shape.collision_type = :ship
+    @shape.body.a = Math::PI / 2.0
+
     @damage = 0.01
   end
 
-  def jump_to(x, y)
-    @x = x
-    @y = y
-  end
-
-  def turn(angle)
-    @angle += angle
-  end
-
-  def turn_left
-    turn(-4.5)
-  end
-
-  def turn_right
-    turn(4.5)
-  end
-
-  def left
-    @vel_x -= AMOUNT
-  end
-
-  def right
-    @vel_x += AMOUNT
+  def size
+    SIZE
   end
 
   def accelerate
-    @vel_x += Gosu::offset_x(@angle, AMOUNT)
-    @vel_y += Gosu::offset_y(@angle, AMOUNT)
-  end
-
-  def reverse
-    @vel_x -= Gosu::offset_x(@angle, AMOUNT)
-    @vel_y -= Gosu::offset_y(@angle, AMOUNT)
+    @body.apply_force(@body.a.radians_to_vec2, CP::Vec2.new(0.0, 0.0))
   end
 
   def stop
-    @vel_x = 0
-    @vel_y = 0
+    @body.apply_force(CP::Vec2.new(0.0, 0.0), CP::Vec2.new(0.0, 0.0))
   end
 
   def move
     auto_movement
     auto_rotation
 
-    @x += @vel_x
-    @y += @vel_y
-    @x %= window.width
-    @y %= window.height
+    @body.p.x += @body.f.x
+    @body.p.y += @body.f.y
 
-    # slow down
-    @vel_x *= 0.9
-    @vel_y *= 0.9
+    @body.p.x %= window.width
+    @body.p.y %= window.height
   end
 
   def auto_movement
@@ -81,49 +52,65 @@ class Ship
     end
 
     if move_to_x && move_to_y
-      @angle = TwoDeeGeo.angle_between_points(@x, @y, move_to_x, move_to_y)
-
-      if collides?(move_to_x, move_to_y, STOP_GAP)
-        stop
-
-        move_to_x = move_to_y = nil
-
-        if @move_to_obj
-          @rotate_around_obj = @move_to_obj
-          @move_to_obj = nil
-        end
-      else
-        accelerate
-      end
+      @body.a = TwoDeeGeo.angle_between_points(x, y, move_to_x, move_to_y)
+      accelerate
     end
   end
 
   def auto_rotation
     if @rotate_around_obj
-      if @x <= @rotate_around_obj.x + @rotate_around_obj.width / 2 &&
-        @y <= @rotate_around_obj.y - @rotate_around_obj.height / 2
-        @vel_x += AMOUNT
-      elsif @x >= @rotate_around_obj.x + @rotate_around_obj.width / 2 &&
-        @y <= @rotate_around_obj.y + @rotate_around_obj.height / 2
-        @vel_y += AMOUNT
-      elsif @x >= @rotate_around_obj.x - @rotate_around_obj.width / 2 &&
-        @y >= @rotate_around_obj.y + @rotate_around_obj.height / 2
-        @vel_x -= AMOUNT
-      elsif @x <= @rotate_around_obj.x - @rotate_around_obj.width / 2 &&
-        @y >= @rotate_around_obj.y - @rotate_around_obj.height / 2
-        @vel_y -= AMOUNT
-      elsif @x <= @rotate_around_obj.x - @rotate_around_obj.width / 2 &&
-        @y <= @rotate_around_obj.y - @rotate_around_obj.height / 2
-        @vel_x -= AMOUNT
+      obj = @rotate_around_obj
+      # if x <= @rotate_around_obj.x + @rotate_around_obj.size / 2 &&
+      #   y <= @rotate_around_obj.y - @rotate_around_obj.size / 2
+      #   @vel_x += AMOUNT
+      # elsif x >= @rotate_around_obj.x + @rotate_around_obj.size / 2 &&
+      #   y <= @rotate_around_obj.y + @rotate_around_obj.size / 2
+      #   @vel_y += AMOUNT
+      # elsif x >= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
+      #   y >= @rotate_around_obj.y + @rotate_around_obj.size / 2
+      #   @vel_x -= AMOUNT
+      # elsif x <= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
+      #   y >= @rotate_around_obj.y - @rotate_around_obj.size / 2
+      #   @vel_y -= AMOUNT
+      # elsif x <= @rotate_around_obj.x - @rotate_around_obj.size / 2 &&
+      #   y <= @rotate_around_obj.y - @rotate_around_obj.size / 2
+      #   @vel_x -= AMOUNT
+      # end
+
+      # @angle = TwoDeeGeo.angle_between_points(x, y, @rotate_around_obj.x, @rotate_around_obj.y)
+
+      dx = dy = 0.0
+
+      if x <= obj.x + obj.size / 0.75 &&
+        y <= obj.y - obj.size / 0.75
+        dx = 1
+      elsif x >= obj.x + obj.size / 0.75 &&
+        y <= obj.y + obj.size / 0.75
+        dy = 1
+      elsif x >= obj.x - obj.size / 0.75 &&
+        y >= obj.y + obj.size / 0.75
+        dx = -1
+      elsif x <= obj.x - obj.size / 0.75 &&
+        y >= obj.y - obj.size / 0.75
+        dy = -1
+      elsif x <= obj.x - obj.size / 0.75 &&
+        y <= obj.y - obj.size / 0.75
+        dx = -1
       end
 
-      @angle = TwoDeeGeo.angle_between_points(@x, @y, @rotate_around_obj.x, @rotate_around_obj.y)
+      @body.a = CP::Vec2.new(dx, dy).to_angle
+      @body.apply_force(@body.a.radians_to_vec2 * 0.5, CP::Vec2.new(0.0, 0.0))
+      @body.a = TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y)
 
-      shoot_at(@rotate_around_obj) unless @owner.owns?(@rotate_around_obj)
+      attack(obj) unless obj.health <= 0 || owner.owns?(obj)
     end
   end
 
-  def shoot_at(obj)
+  def attack_base(obj)
+    rotate_around(obj)
+  end
+
+  def attack(obj)
     obj.take_damage(self)
   end
 
@@ -141,20 +128,22 @@ class Ship
     @move_to_obj = obj
   end
 
-  def draw
-    x1 = @x + SIZE
-    x2 = @x
-    x3 = @x - SIZE
-    y1 = y3 = @y
-    y2 = @y - SIZE * 3
-    c = @owner.color
-    Gosu.rotate(@angle, @x, @y - SIZE) do
-      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c, 0, mode = :default)
-    end
+  def rotate_around(obj)
+    @move_to_x = nil
+    @move_to_y = nil
+    @move_to_obj = nil
+    @rotate_around_obj = obj
   end
 
-  def collides?(x, y, gap = 0)
-    gap += SIZE * 2
-    (@x - x).abs <= gap && (@y - y).abs <= gap
+  def draw
+    x1 = x + size
+    x2 = x
+    x3 = x - size
+    y1 = y3 = y
+    y2 = y - size * 3
+    c = @owner.color
+    Gosu.rotate(angle, x, y - size) do
+      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c, 0, mode = :default)
+    end
   end
 end

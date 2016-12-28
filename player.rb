@@ -9,6 +9,7 @@ class Player
     @color = color
     @damage = 0.01
     @ships = []
+    @max_ships = 50
   end
 
   def owns?(obj)
@@ -16,6 +17,8 @@ class Player
   end
 
   def generate_ship(base)
+    return if @ships.size >= 50
+
     ship = Ship.new(base.window, self)
 
     ship.jump_to(base.x, base.y)

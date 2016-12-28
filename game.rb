@@ -1,14 +1,27 @@
 require 'pry'
 
 require 'gosu'
+require 'chipmunk'
+require_relative 'numeric'
 require_relative 'player'
+require_relative 'owned_object'
 require_relative 'ship'
 require_relative 'base'
 
 class TwoDeeGeo < Gosu::Window
+  attr_accessor :space
+
+  SUBSTEPS = 6
+
   def initialize
     super(Gosu::available_width, Gosu::available_height, false)
     self.caption = 'Two-Dee Geo!'
+
+
+    @space = CP::Space.new
+    @space.damping = 0.8
+    # @space.gravity = CP::Vec2.new(0, 10)
+    @dt = (1.0/60.0)
 
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
@@ -25,32 +38,59 @@ class TwoDeeGeo < Gosu::Window
     base = Base.new(self, enemy)
     base.jump_to(width / 2, height - height / 10)
     @bases << base
+
+    @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
+      ship = ship_shape.object
+      base = base_shape.object
+
+      if ship.owner.owns?(base)
+        nil
+      else
+        # Stop
+        ship.stop
+
+        # Set to attack base
+        ship.attack_base(base)
+
+        true
+      end
+    end
+
+    @space.add_collision_func(:base, :base, &nil)
   end
 
   def needs_cursor?; true; end
 
   def update
-    # Idle bases reset to regenerate if not being shot at
-    @bases.each(&:idle)
+    SUBSTEPS.times do
+      # Idle bases reset to regenerate if not being shot at
+      @bases.each(&:idle)
 
-    # Player mouse click event
-    if button_down?(Gosu::MsLeft)
-      base = clicked_base
+      # Player mouse click event
+      if button_down?(Gosu::MsLeft)
+        base = clicked_base
 
-      if base
-        @player.ships.each { |s| s.move_to_obj(base) }
-      else
-        @player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
+        if base
+          @player.ships.each { |s| s.move_to_obj(base) }
+        else
+          @player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
+        end
       end
+
+      # Move all ships
+      @players.flat_map(&:ships).each do |ship|
+        # Reset phyics for ship
+        ship.shape.body.reset_forces
+        ship.move
+      end
+
+      # Base regeneration
+      @bases.each(&:increase_regeneration) if button_down?(Gosu::KbSpace)
+      @bases.each(&:regenerate_health)
+      @bases.each(&:generate_ships)
+
+      @space.step(@dt)
     end
-
-    # Move all ships
-    @players.flat_map(&:ships).each(&:move)
-
-    # Base regeneration
-    @bases.each(&:increase_regeneration) if button_down?(Gosu::KbSpace)
-    @bases.each(&:regenerate_health)
-    @bases.each(&:generate_ships)
 
     if button_down?(Gosu::KbSpace)
       @owner.generate_ship(@player_base)
@@ -71,7 +111,7 @@ class TwoDeeGeo < Gosu::Window
     y = mouse_y
 
     bases = @bases.select do |base|
-      base.collides?(x, y)
+      false # base.collides?(x, y)
     end
 
     bases.any? ? bases.first : nil
