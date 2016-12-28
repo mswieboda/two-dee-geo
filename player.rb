@@ -21,7 +21,14 @@ class Player
 
     ship = Ship.new(base.window, self)
 
-    ship.jump_to(base.x, base.y)
+    angle = rand(0..360) + 90
+    radians = angle.gosu_to_radians
+    new_x = Math.cos(radians) * base.shape.radius;
+    new_y = Math.sin(radians) * base.shape.radius;
+
+    ship.shape.body.a = angle
+    ship.jump_to(base.x + new_x, base.y + new_y)
+
     @ships << ship
   end
 end
