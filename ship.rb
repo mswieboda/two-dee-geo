@@ -4,8 +4,9 @@ class Ship < OwnedObject
   attr_reader :window, :shape, :damage, :owner, :ship_range
 
   SIZE = 5
-  SPEED = 0.5
-  ROTATE_SPEED = 0.00333
+  SPEED = 0.75
+  DEFENSE_ROTATE_SPEED = 0.00333
+  ATTACK_ROTATION_SPEED_RATIO = 3
   SHIP_RANGE = 10
 
   def initialize(window, owner)
@@ -75,7 +76,8 @@ class Ship < OwnedObject
 
       # Add 180 since Y is negative
       @rotating_angle ||= (TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y) + 180).gosu_to_radians
-      @rotating_angle += ROTATE_SPEED;
+      @rotating_angle += DEFENSE_ROTATE_SPEED;
+      @rotating_angle -= DEFENSE_ROTATE_SPEED * ATTACK_ROTATION_SPEED_RATIO if owner.owns?(@rotate_around_obj)
       new_x = Math.cos(@rotating_angle) * radius;
       new_y = Math.sin(@rotating_angle) * radius;
 

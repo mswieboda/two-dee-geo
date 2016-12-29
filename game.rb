@@ -172,8 +172,6 @@ class TwoDeeGeo < Gosu::Window
       player.ships.each { |s| s.move_to_obj(base) }
     else
       player.ships.each { |s| s.move_to_coords(mouse_view_x, mouse_view_y) }
-
-      # Create visual
       @click_visuals << ClickVisual.new(self, player, mouse_view_x, mouse_view_y)
     end
   end
