@@ -28,7 +28,7 @@ class ClickVisual < OwnedObject
   end
 
   def destroy?
-    @destroy == true
+    !!@destroy
   end
 
   def draw

@@ -15,7 +15,7 @@ class OwnedObject
 
     # Shape
     @shape = CP::Shape::Circle.new(@body, size, CP::Vec2.new(0, 0))
-    @shape.e = 0.1
+    @shape.e = 0.5
     @shape.u = 1
 
     @window.space.add_body(@body)

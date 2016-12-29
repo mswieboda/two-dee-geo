@@ -8,6 +8,7 @@ require_relative 'owned_object'
 require_relative 'click_visual'
 require_relative 'ship'
 require_relative 'base'
+require_relative 'ship_attack_collision_handler'
 
 def ppp(hash)
   pp "#{hash}"
@@ -48,23 +49,28 @@ class TwoDeeGeo < Gosu::Window
     # Just for testing
     @player.generate_ship(@player_base)
 
+    # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
       ship = ship_shape.object
       base = base_shape.object
 
       if ship.moving_to?(base)
-        # Stop
-        ship.stop
-
-        # Set to attack base
         ship.attack_base(base)
+      else
+        # TODO: make rotating around work
+        # if base is in the way
+        # ship.rotate_around(base)
       end
 
       # No physics collision
       nil
     end
 
+    ship_attack_collision_handler = ShipAttackCollisionHandler.new
+    @space.add_collision_handler(:ship_range, :ship, ship_attack_collision_handler)
     @space.add_collision_func(:base, :base, &nil)
+    @space.add_collision_func(:ship_range, :base, &nil)
+    @space.add_collision_func(:ship_range, :ship_range, &nil)
   end
 
   def needs_cursor?; true; end
@@ -73,7 +79,7 @@ class TwoDeeGeo < Gosu::Window
     SUBSTEPS.times do
       @remove_shapes.each do |shape|
         @click_visuals.delete_if { |cv| cv.shape == shape }
-        @space.remove_body(shape.body)
+        @space.remove_body(shape.body) if shape.body
         @space.remove_shape(shape)
       end
 
@@ -96,6 +102,19 @@ class TwoDeeGeo < Gosu::Window
       @click_visuals.each(&:update)
       cvs_to_remove = @click_visuals.select(&:destroy?).map(&:shape)
       @remove_shapes += cvs_to_remove if cvs_to_remove.any?
+
+      # # Remove dead ships
+      ships_to_remove = @players.flat_map(&:ships).select(&:destroy?).compact
+      ships_to_remove.each do |ship|
+        ship.owner.remove_ship(ship)
+      end
+
+      # Remove ship shapes
+      ships_to_remove = ships_to_remove.flat_map do |ship|
+        [ship.shape, ship.ship_range]
+      end.compact
+
+      @remove_shapes += ships_to_remove if ships_to_remove.any?
 
       @space.step(@dt)
     end

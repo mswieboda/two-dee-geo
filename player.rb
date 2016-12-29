@@ -31,4 +31,8 @@ class Player
 
     @ships << ship
   end
+
+  def remove_ship(ship)
+    @ships.delete(ship)
+  end
 end

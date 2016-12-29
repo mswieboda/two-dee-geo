@@ -10,6 +10,7 @@ class Base < OwnedObject
   TEXT_SIZE = (SIZE * 0.6).round
   TEXT_FONT = "Courier New"
   MAX_REGENERATION = 10
+  HEALTH_MULTIPLIER = 100
   ROTATE_SPEED = 0.1313
 
   def initialize(window, owner)
@@ -23,7 +24,7 @@ class Base < OwnedObject
 
     # Health
     @health_text = Gosu::Font.new(TEXT_SIZE, name: TEXT_FONT)
-    @health = @max_health = 1000
+    @health = @max_health = 1000 * HEALTH_MULTIPLIER
     @health_regeneration_amount = @health_ticks = 0
 
     # Ship generation
@@ -32,6 +33,10 @@ class Base < OwnedObject
 
   def size
     SIZE
+  end
+
+  def health_to_display
+    (health / HEALTH_MULTIPLIER).round
   end
 
   def draw
@@ -57,7 +62,7 @@ class Base < OwnedObject
       Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
     end
 
-    @health_text.draw_rel(health.to_i, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
+    @health_text.draw_rel(health_to_display, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
   end
 
   def take_damage(obj)
