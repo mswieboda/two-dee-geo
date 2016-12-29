@@ -1,9 +1,7 @@
-require 'pry'
-
-require 'gosu'
-
 class Ship < OwnedObject
-  attr_reader :window, :shape, :damage, :owner, :ship_range, :health
+  include Health
+
+  attr_reader :window, :shape, :damage, :owner, :ship_range
 
   SIZE = 5
   SPEED = 0.5
@@ -26,7 +24,7 @@ class Ship < OwnedObject
 
     @damage = 1
     @facing_angle = nil
-    @health = 100
+    init_health(100)
   end
 
   def size
@@ -94,15 +92,16 @@ class Ship < OwnedObject
       @facing_angle = TwoDeeGeo.angle_between_points(x, y, @attack_ship.x, @attack_ship.y)
       attack(@attack_ship)
     elsif @attack_base
-      attack(@attack_base)
+      if @attack_base.health <= 0 || owner.owns?(@attack_base)
+        stop_attacking_base
+      else
+        attack(@attack_base)
+      end
     end
   end
 
-  def take_damage(obj)
-    @health -= obj.damage
-
-    if health <= 0
-      @health = 0
+  def take_damage_from(obj)
+    take_damage(obj.damage) do
       @destroy = true
     end
   end
@@ -122,25 +121,23 @@ class Ship < OwnedObject
     rotate_around(obj)
   end
 
+  def stop_attacking_base
+    @attack_base = nil
+  end
+
   def attack(obj)
-    return if obj.health <= 0 || owner.owns?(obj)
-    obj.take_damage(self)
+    obj.take_damage_from(self)
   end
 
   def move_to_coords(x, y)
-    @move_to_obj = nil
-    @rotating_angle = nil
-    @rotate_around_obj = nil
+    clear_orders
     @move_to_x = x
     @move_to_y = y
   end
 
   def move_to_obj(obj)
     return if @move_to_obj == obj || @rotate_around_obj == obj
-    @move_to_x = nil
-    @move_to_y = nil
-    @rotating_angle = nil
-    @rotate_around_obj = nil
+    clear_orders
     @move_to_obj = obj
   end
 
@@ -150,13 +147,16 @@ class Ship < OwnedObject
   end
 
   def rotate_around(obj)
-    @move_to_x = nil
-    @move_to_y = nil
-    @move_to_obj = nil
+    clear_moving_orders
     @rotate_around_obj = obj
   end
 
   def clear_orders
+    clear_moving_orders
+    @attack_base = nil
+  end
+
+  def clear_moving_orders
     @move_to_x = nil
     @move_to_y = nil
     @move_to_obj = nil

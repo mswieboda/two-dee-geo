@@ -1,7 +1,3 @@
-require 'pry'
-
-require 'gosu'
-
 class OwnedObject
   attr_reader :window
 

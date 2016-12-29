@@ -1,14 +1,15 @@
 require 'pry'
-
 require 'gosu'
 require 'chipmunk'
 require_relative 'numeric'
 require_relative 'player'
 require_relative 'owned_object'
 require_relative 'click_visual'
+require_relative 'health'
 require_relative 'ship'
 require_relative 'base'
 require_relative 'ship_attack_collision_handler'
+require_relative 'text_dialog'
 
 def ppp(hash)
   pp "#{hash}"
@@ -29,6 +30,7 @@ class TwoDeeGeo < Gosu::Window
 
     @remove_shapes = []
     @click_visuals = []
+    @dialog_drawables = []
 
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
@@ -81,6 +83,10 @@ class TwoDeeGeo < Gosu::Window
 
   def update
     SUBSTEPS.times do
+      return if done?
+      win if win?
+      lose if lost?
+
       @remove_shapes.each do |shape|
         @click_visuals.delete_if { |cv| cv.shape == shape }
         @space.remove_body(shape.body) if shape.body
@@ -88,6 +94,7 @@ class TwoDeeGeo < Gosu::Window
       end
 
       # Idle bases reset to regenerate if not being shot at
+      # And also makes them spin / animate
       @bases.each(&:idle)
 
       # Move all ships
@@ -128,6 +135,7 @@ class TwoDeeGeo < Gosu::Window
     @bases.each(&:draw)
     @click_visuals.each(&:draw)
     @players.flat_map(&:ships).each(&:draw)
+    @dialog_drawables.each(&:draw)
   end
 
   def button_up(id)
@@ -163,6 +171,38 @@ class TwoDeeGeo < Gosu::Window
     end
 
     nil
+  end
+
+  def win?
+    @bases.all? { |b| b.owner == @player }
+  end
+
+  def win
+    @done = true
+    Thread.new do
+      sleep 1
+      @dialog_drawables << TextDialog.new(self, "You win!", @player.color)
+      sleep 3
+      close
+    end
+  end
+
+  def lost?
+    @bases.none? { |b| b.owner == @player }
+  end
+
+  def lose
+    @done = true
+    Thread.new do
+      sleep 1
+      @dialog_drawables << TextDialog.new(self, "You lost!", @player.color)
+      sleep 3
+      close
+    end
+  end
+
+  def done?
+    !!@done
   end
 
   private

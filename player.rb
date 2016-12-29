@@ -1,15 +1,11 @@
-require 'pry'
-
-require 'gosu'
-
 class Player
   attr_reader :color, :ships
 
   def initialize(color)
     @color = color
-    @damage = 0.01
     @ships = []
     @max_ships = 50
+    @init_base_health = 1
   end
 
   def owns?(obj)
@@ -34,5 +30,9 @@ class Player
 
   def remove_ship(ship)
     @ships.delete(ship)
+  end
+
+  def init_base_health
+    Base::MAX_HEALTH * Base::HEALTH_MULTIPLIER / 2 * @init_base_health
   end
 end

@@ -1,16 +1,16 @@
-require 'pry'
-
-require 'gosu'
-
 class Base < OwnedObject
-  attr_reader :window, :shape, :owner, :health
+  include Health
+
+  attr_reader :window, :shape, :owner
 
   SIZE = 10 * 5
   INNER_SIZE_RATIO = 1.25
   TEXT_SIZE = (SIZE * 0.6).round
   TEXT_FONT = "Courier New"
-  MAX_REGENERATION = 10
+  MAX_HEALTH = 100
   HEALTH_MULTIPLIER = 100
+  MAX_REGENERATION = 10
+  HEALTH_REGENERATION_INCREASE = 10
   ROTATE_SPEED = 0.1313
 
   def initialize(window, owner)
@@ -23,10 +23,10 @@ class Base < OwnedObject
     @shape.collision_type = :base
 
     # Health
+    init_health(MAX_HEALTH * HEALTH_MULTIPLIER)
     @health_text = Gosu::Font.new(TEXT_SIZE, name: TEXT_FONT)
-    @health = @max_health = 1000 * HEALTH_MULTIPLIER
-    @health_regeneration_amount = @health_ticks = 0
-
+    @health_regeneration_speed = @health_ticks = 0
+    @health = 10 * 100
     # Ship generation
     @ship_generation_amount = @ship_ticks = 0
   end
@@ -65,14 +65,10 @@ class Base < OwnedObject
     @health_text.draw_rel(health_to_display, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
   end
 
-  def take_damage(obj)
-    @taking_damage = true
-    @health -= obj.damage
-
-    if health <= 0
-      convert_to(obj)
-      @health = 0
-      @taking_damage = false
+  def take_damage_from(obj)
+    return if obj.health <= 0 || owner.owns?(obj)
+    take_damage(obj.damage) do
+      convert_to(obj.owner)
     end
   end
 
@@ -91,19 +87,20 @@ class Base < OwnedObject
     end
 
     @health_ticks += 1
-    if @health_ticks > 100 - @health_regeneration_amount
-      @health += 1
+    if @health_ticks > 100 - @health_regeneration_speed
+      @health += HEALTH_REGENERATION_INCREASE
       @health_ticks = 0
     end
   end
 
-  def convert_to(obj)
-    @owner = obj.owner
+  def convert_to(owner)
+    @owner = owner
+    @health = owner.init_base_health
   end
 
   def increase_regeneration
-    return if @health_regeneration_amount + 1 > MAX_REGENERATION
-    @health_regeneration_amount += 1
+    return if @health_regeneration_speed + 1 > MAX_REGENERATION
+    @health_regeneration_speed += 1
   end
 
   def generate_ships
