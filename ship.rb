@@ -187,19 +187,24 @@ class Ship < OwnedObject
     y1 = y3 = y
     y2 = y - size * 2
     c = owner.color
-    Gosu.rotate(facing_angle, x, y - size) do
+    Gosu.rotate(facing_angle, x, y) do
       Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c)
       Gosu.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c)
     end
 
-    # Draw bullet line attacking ship
-    if @attack_ship
-      Gosu.draw_line(x, y, c, @attack_ship.x, @attack_ship.y, c)
-    end
+    if @attack_ship || @attack_base
+      bx = x + Gosu.offset_x(facing_angle, size)
+      by = y + Gosu.offset_y(facing_angle, size)
 
-    # Draw bullet line attacking base
-    if @attack_base
-      Gosu.draw_line(x, y, c, @attack_base.x, @attack_base.y, c)
+      # Draw bullet line attacking ship
+      if @attack_ship
+        Gosu.draw_line(bx, by, c, @attack_ship.x, @attack_ship.y, c)
+      end
+
+      # Draw bullet line attacking base
+      if @attack_base
+        Gosu.draw_line(bx, by, c, @attack_base.x, @attack_base.y, c)
+      end
     end
   end
 end
