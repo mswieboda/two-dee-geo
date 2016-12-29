@@ -8,7 +8,7 @@ class Ship < OwnedObject
   SIZE = 5
   SPEED = 0.5
   ROTATE_SPEED = 0.00333
-  SHIP_RANGE = 3
+  SHIP_RANGE = 10
 
   def initialize(window, owner)
     super(window, owner, SIZE * 0.75)
@@ -86,8 +86,6 @@ class Ship < OwnedObject
 
       jump_to(obj.x + new_x, obj.y + new_y)
       @body.a = TwoDeeGeo.angle_between_points(x, y, obj.x, obj.y)
-
-      attack(obj)
     end
   end
 
@@ -95,6 +93,8 @@ class Ship < OwnedObject
     if @attack_ship
       @facing_angle = TwoDeeGeo.angle_between_points(x, y, @attack_ship.x, @attack_ship.y)
       attack(@attack_ship)
+    elsif @attack_base
+      attack(@attack_base)
     end
   end
 
@@ -117,6 +117,7 @@ class Ship < OwnedObject
   end
 
   def attack_base(obj)
+    @attack_base = obj unless owner.owns?(obj)
     stop
     rotate_around(obj)
   end
@@ -176,7 +177,7 @@ class Ship < OwnedObject
   end
 
   def remove_from_owner
-    @owner.remove_ship(self)
+    owner.remove_ship(self)
   end
 
   def draw
@@ -185,10 +186,20 @@ class Ship < OwnedObject
     x3 = x - size
     y1 = y3 = y
     y2 = y - size * 2
-    c = @owner.color
+    c = owner.color
     Gosu.rotate(facing_angle, x, y - size) do
-      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c, 0)
-      Gosu.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c, 0)
+      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c)
+      Gosu.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c)
+    end
+
+    # Draw bullet line attacking ship
+    if @attack_ship
+      Gosu.draw_line(x, y, c, @attack_ship.x, @attack_ship.y, c)
+    end
+
+    # Draw bullet line attacking base
+    if @attack_base
+      Gosu.draw_line(x, y, c, @attack_base.x, @attack_base.y, c)
     end
   end
 end

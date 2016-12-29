@@ -55,7 +55,11 @@ class TwoDeeGeo < Gosu::Window
       base = base_shape.object
 
       if ship.moving_to?(base)
-        ship.attack_base(base)
+        if ship.owner.owns?(base)
+          ship.rotate_around(base)
+        else
+          ship.attack_base(base)
+        end
       else
         # TODO: make rotating around work
         # if base is in the way
