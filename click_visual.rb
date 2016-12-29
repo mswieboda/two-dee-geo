@@ -52,8 +52,8 @@ class ClickVisual < OwnedObject
       iy3 = y + size / (@frame - 3) / INNER_SIZE_RATIO
       ic = Gosu::Color::BLACK
 
-      Gosu.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
-      Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
+      window.viewport.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
+      window.viewport.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
     end
 
     x1 = x3 = x
@@ -73,8 +73,7 @@ class ClickVisual < OwnedObject
     iy3 = y + size / @frame / INNER_SIZE_RATIO
     ic = Gosu::Color::BLACK
 
-    Gosu.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
-    Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
-
+    window.viewport.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
+    window.viewport.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
   end
 end

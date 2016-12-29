@@ -8,6 +8,8 @@ require_relative 'click_visual'
 require_relative 'health'
 require_relative 'ship'
 require_relative 'base'
+require_relative 'map'
+require_relative 'viewport'
 require_relative 'ship_attack_collision_handler'
 require_relative 'text_dialog'
 
@@ -16,7 +18,7 @@ def ppp(hash)
 end
 
 class TwoDeeGeo < Gosu::Window
-  attr_accessor :space
+  attr_accessor :space, :viewport
 
   SUBSTEPS = 6
 
@@ -24,6 +26,7 @@ class TwoDeeGeo < Gosu::Window
     super(Gosu::available_width, Gosu::available_height)
     self.caption = 'Two-Dee Geo!'
 
+    # Space
     @space = CP::Space.new
     @space.damping = 0.7
     @dt = (1.0/60.0)
@@ -32,13 +35,17 @@ class TwoDeeGeo < Gosu::Window
     @click_visuals = []
     @dialog_drawables = []
 
+    # Players
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
     @players << @player
 
     @enemy = Player.new(Gosu::Color::FUCHSIA)
+    enemy2 = Player.new(Gosu::Color::BLUE)
     @players << @enemy
+    @players << enemy2
 
+    # Bases
     @bases = []
     @player_base = base = Base.new(self, @player)
     base.jump_to(width / 2, height / 10)
@@ -47,6 +54,16 @@ class TwoDeeGeo < Gosu::Window
     base = Base.new(self, @enemy)
     base.jump_to(width / 2, height - height / 10)
     @bases << base
+
+    base = Base.new(self, enemy2)
+    base.jump_to(width, height)
+    @bases << base
+
+    # Map
+    @map = Map.new(100_000, 100_000)
+
+    # Viewport
+    @viewport = Viewport.new(@map, width, height)
 
     # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
@@ -124,6 +141,9 @@ class TwoDeeGeo < Gosu::Window
 
       @remove_shapes += ships_to_remove if ships_to_remove.any?
 
+      # Move viewport
+      @viewport.move
+
       @space.step(@dt)
     end
   end
@@ -151,15 +171,15 @@ class TwoDeeGeo < Gosu::Window
     if base
       player.ships.each { |s| s.move_to_obj(base) }
     else
-      player.ships.each { |s| s.move_to_coords(mouse_x, mouse_y) }
+      player.ships.each { |s| s.move_to_coords(mouse_view_x, mouse_view_y) }
 
       # Create visual
-      @click_visuals << ClickVisual.new(self, player, mouse_x, mouse_y)
+      @click_visuals << ClickVisual.new(self, player, mouse_view_x, mouse_view_y)
     end
   end
 
   def clicked_base
-    p = CP::Vec2.new(mouse_x, mouse_y)
+    p = CP::Vec2.new(mouse_view_x, mouse_view_y)
 
     bases = @bases.each do |base|
       if base.shape.point_query(p)
@@ -200,6 +220,14 @@ class TwoDeeGeo < Gosu::Window
 
   def done?
     !!@done
+  end
+
+  def mouse_view_x
+    mouse_x + viewport.x
+  end
+
+  def mouse_view_y
+    mouse_y + viewport.y
   end
 
   private

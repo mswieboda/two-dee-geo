@@ -57,12 +57,12 @@ class Base < OwnedObject
     iy3 = y + size / INNER_SIZE_RATIO
     ic = Gosu::Color::BLACK
 
-    Gosu.rotate(@body.a, x, y) do
-      Gosu.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
-      Gosu.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
+    window.viewport.draw_rotated(@body.a, x, y) do
+      window.viewport.draw_quad(x1, y1, c, x2, y2, c, x3, y3, c, x4, y4, c)
+      window.viewport.draw_quad(ix1, iy1, ic, ix2, iy2, ic, ix3, iy3, ic, ix4, iy4, ic)
     end
 
-    @health_text.draw_rel(health_to_display, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
+    window.viewport.draw_font_rel(@health_text, health_to_display, x1, y1 + size - TEXT_SIZE / 2, 0, 0.5, 0, 1, 1, c)
   end
 
   def take_damage_from(obj)

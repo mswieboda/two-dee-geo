@@ -46,9 +46,6 @@ class Ship < OwnedObject
 
     @body.p.x += @body.f.x
     @body.p.y += @body.f.y
-
-    @body.p.x %= window.width
-    @body.p.y %= window.height
   end
 
   def auto_movement
@@ -187,9 +184,10 @@ class Ship < OwnedObject
     y1 = y3 = y
     y2 = y - size * 2
     c = owner.color
-    Gosu.rotate(facing_angle, x, y) do
-      Gosu.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c)
-      Gosu.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c)
+
+    window.viewport.draw_rotated(facing_angle, x, y) do
+      window.viewport.draw_triangle(x1, y1, c, x2, y2, c, x3, y3, c)
+      window.viewport.draw_triangle(x1, y1, c, x2, y2 + size * 3, c, x3, y3, c)
     end
 
     if @attack_ship || @attack_base
@@ -198,12 +196,12 @@ class Ship < OwnedObject
 
       # Draw bullet line attacking ship
       if @attack_ship
-        Gosu.draw_line(bx, by, c, @attack_ship.x, @attack_ship.y, c)
+        window.viewport.draw_line(bx, by, c, @attack_ship.x, @attack_ship.y, c)
       end
 
       # Draw bullet line attacking base
       if @attack_base
-        Gosu.draw_line(bx, by, c, @attack_base.x, @attack_base.y, c)
+        window.viewport.draw_line(bx, by, c, @attack_base.x, @attack_base.y, c)
       end
     end
   end
