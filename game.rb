@@ -48,9 +48,6 @@ class TwoDeeGeo < Gosu::Window
     base.jump_to(width / 2, height - height / 10)
     @bases << base
 
-    # Just for testing
-    @player.generate_ship(@player_base)
-
     # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
       ship = ship_shape.object

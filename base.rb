@@ -7,7 +7,7 @@ class Base < OwnedObject
   INNER_SIZE_RATIO = 1.25
   TEXT_SIZE = (SIZE * 0.6).round
   TEXT_FONT = "Courier New"
-  MAX_HEALTH = 100
+  MAX_HEALTH = 1000
   HEALTH_MULTIPLIER = 100
   MAX_REGENERATION = 10
   HEALTH_REGENERATION_INCREASE = 10
@@ -26,7 +26,7 @@ class Base < OwnedObject
     init_health(MAX_HEALTH * HEALTH_MULTIPLIER)
     @health_text = Gosu::Font.new(TEXT_SIZE, name: TEXT_FONT)
     @health_regeneration_speed = @health_ticks = 0
-    @health = 10 * 100
+
     # Ship generation
     @ship_generation_amount = @ship_ticks = 0
   end
