@@ -101,11 +101,13 @@ class TwoDeeGeo < Gosu::Window
       win if win?
       lose if lost?
 
+      # Remove shapes
       @remove_shapes.each do |shape|
         @click_visuals.delete_if { |cv| cv.shape == shape }
         @space.remove_body(shape.body) if shape.body
         @space.remove_shape(shape)
       end
+      @remove_shapes.clear
 
       # Idle bases reset to regenerate if not being shot at
       # And also makes them spin / animate
