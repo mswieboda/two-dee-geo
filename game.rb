@@ -60,7 +60,7 @@ class TwoDeeGeo < Gosu::Window
     @bases << base
 
     # Map
-    @map = Map.new(100_000, 100_000)
+    @map = Map.new(5_000, 5_000)
 
     # Viewport
     @viewport = Viewport.new(@map, width, height)
@@ -128,7 +128,7 @@ class TwoDeeGeo < Gosu::Window
       cvs_to_remove = @click_visuals.select(&:destroy?).map(&:shape)
       @remove_shapes += cvs_to_remove if cvs_to_remove.any?
 
-      # # Remove dead ships
+      # Remove dead ships
       ships_to_remove = @players.flat_map(&:ships).select(&:destroy?).compact
       ships_to_remove.each do |ship|
         ship.owner.remove_ship(ship)
