@@ -85,7 +85,8 @@ class Viewport
     Gosu.draw_line(x1 - x, y1 - y, c1, x2 - x, y2 - y, c2)
   end
 
-  def draw_quad(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4)
+  def draw_quad(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4, log = false)
+    ppp x1: x1, y1: y1, x2: x2, y2: y2, x3: x3, y3: y3, x4: x4, y4: y4 if log
     return unless visible?([x1, x2, x3, x4], [y1, y2, y3, y4])
     Gosu.draw_quad(x1 - x, y1 - y, c1, x2 - x, y2 - y, c2, x3 - x, y3 - y, c3, x4 - x, y4 - y, c4)
   end

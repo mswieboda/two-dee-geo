@@ -2,6 +2,7 @@ require 'pry'
 require 'gosu'
 require 'chipmunk'
 require_relative 'numeric'
+require_relative 'square'
 require_relative 'player'
 require_relative 'owned_object'
 require_relative 'click_visual'
@@ -64,6 +65,7 @@ class TwoDeeGeo < Gosu::Window
 
     # Viewport
     @viewport = Viewport.new(@map, width, height)
+    @zoom_test_square = Square.new(width / 2, height / 2)
 
     # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
