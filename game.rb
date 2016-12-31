@@ -10,6 +10,7 @@ require_relative 'ship'
 require_relative 'base'
 require_relative 'map'
 require_relative 'mini_map'
+require_relative 'hud'
 require_relative 'viewport'
 require_relative 'ship_attack_collision_handler'
 require_relative 'text_dialog'
@@ -72,6 +73,11 @@ class TwoDeeGeo < Gosu::Window
       viewport: @viewport,
       bases: @bases,
       players: @players
+    )
+    @hud = Hud.new(
+      player: @player,
+      players: @players,
+      bases: @bases
     )
 
     # Collision handling
@@ -166,6 +172,7 @@ class TwoDeeGeo < Gosu::Window
     @dialog_drawables.each(&:draw)
     @viewport.draw
     @mini_map.draw
+    @hud.draw
   end
 
   def button_up(id)
