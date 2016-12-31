@@ -15,12 +15,28 @@ class Viewport
     @font = Gosu::Font.new(25, name: "Courier New")
   end
 
+  def x_real
+    x / zoom
+  end
+
+  def y_real
+    y / zoom
+  end
+
+  def width_real
+    width / zoom
+  end
+
+  def height_real
+    height / zoom
+  end
+
   def mouse_x(mouse_x)
-    x / zoom + mouse_x / zoom
+    x_real + mouse_x / zoom
   end
 
   def mouse_y(mouse_y)
-    y / zoom + mouse_y / zoom
+    y_real + mouse_y / zoom
   end
 
   def zoom_in

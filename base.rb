@@ -12,6 +12,7 @@ class Base < OwnedObject
   MAX_REGENERATION = 10
   HEALTH_REGENERATION_INCREASE = 30
   ROTATE_SPEED = 0.1313
+  SHIP_GENERATION_TICKS = 250
 
   def initialize(window, owner)
     super(window, owner, SIZE * 2)
@@ -106,7 +107,7 @@ class Base < OwnedObject
   def generate_ships
     @ship_ticks += 1
 
-    if @ship_ticks > 500 - @ship_generation_amount && @health > 0
+    if @ship_ticks > SHIP_GENERATION_TICKS - @ship_generation_amount && @health > 0
       @owner.generate_ship(self)
       @ship_ticks = 0
     end

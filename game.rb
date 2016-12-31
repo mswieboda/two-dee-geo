@@ -9,6 +9,7 @@ require_relative 'health'
 require_relative 'ship'
 require_relative 'base'
 require_relative 'map'
+require_relative 'mini_map'
 require_relative 'viewport'
 require_relative 'ship_attack_collision_handler'
 require_relative 'text_dialog'
@@ -36,7 +37,7 @@ class TwoDeeGeo < Gosu::Window
     @dialog_drawables = []
 
     # Map
-    @map = Map.new(5_000, 5_000)
+    @map = Map.new(3_000, 3_000)
 
     # Viewport
     @viewport = Viewport.new(@map, width, height)
@@ -65,6 +66,13 @@ class TwoDeeGeo < Gosu::Window
     base = Base.new(self, enemy2)
     base.jump_to(@map.width / 2, @map.height / 2)
     @bases << base
+
+    @mini_map = MiniMap.new(
+      map: @map,
+      viewport: @viewport,
+      bases: @bases,
+      players: @players
+    )
 
     # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
@@ -157,6 +165,7 @@ class TwoDeeGeo < Gosu::Window
     @players.flat_map(&:ships).each(&:draw)
     @dialog_drawables.each(&:draw)
     @viewport.draw
+    @mini_map.draw
   end
 
   def button_up(id)
