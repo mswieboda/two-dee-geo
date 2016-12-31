@@ -2,7 +2,6 @@ require 'pry'
 require 'gosu'
 require 'chipmunk'
 require_relative 'numeric'
-require_relative 'square'
 require_relative 'player'
 require_relative 'owned_object'
 require_relative 'click_visual'
@@ -36,6 +35,12 @@ class TwoDeeGeo < Gosu::Window
     @click_visuals = []
     @dialog_drawables = []
 
+    # Map
+    @map = Map.new(5_000, 5_000)
+
+    # Viewport
+    @viewport = Viewport.new(@map, width, height)
+
     # Players
     @players = []
     @player = Player.new(Gosu::Color::GREEN)
@@ -49,7 +54,8 @@ class TwoDeeGeo < Gosu::Window
     # Bases
     @bases = []
     @player_base = base = Base.new(self, @player)
-    base.jump_to(width / 2, height / 10)
+    # base.jump_to(width / 2, height / 10)
+    base.jump_to(width / 2, height / 2)
     @bases << base
 
     base = Base.new(self, @enemy)
@@ -57,15 +63,8 @@ class TwoDeeGeo < Gosu::Window
     @bases << base
 
     base = Base.new(self, enemy2)
-    base.jump_to(width, height)
+    base.jump_to(@map.width / 2, @map.height / 2)
     @bases << base
-
-    # Map
-    @map = Map.new(5_000, 5_000)
-
-    # Viewport
-    @viewport = Viewport.new(@map, width, height)
-    @zoom_test_square = Square.new(width / 2, height / 2)
 
     # Collision handling
     @space.add_collision_func(:ship, :base) do |ship_shape, base_shape|
@@ -145,8 +144,8 @@ class TwoDeeGeo < Gosu::Window
 
       @remove_shapes += ships_to_remove if ships_to_remove.any?
 
-      # Move viewport
-      @viewport.move
+      # Pan viewport
+      @viewport.pan
 
       @space.step(@dt)
     end
@@ -157,6 +156,7 @@ class TwoDeeGeo < Gosu::Window
     @click_visuals.each(&:draw)
     @players.flat_map(&:ships).each(&:draw)
     @dialog_drawables.each(&:draw)
+    @viewport.draw
   end
 
   def button_up(id)
@@ -166,6 +166,10 @@ class TwoDeeGeo < Gosu::Window
       move_ships(@player)
     elsif id == Gosu::KbSpace
       move_ships(@enemy)
+    elsif id == Gosu::KbQ
+      viewport.zoom_in
+    elsif id == Gosu::KbE
+      viewport.zoom_out
     end
   end
 
@@ -225,11 +229,11 @@ class TwoDeeGeo < Gosu::Window
   end
 
   def mouse_view_x
-    mouse_x + viewport.x
+    viewport.mouse_x(mouse_x)
   end
 
   def mouse_view_y
-    mouse_y + viewport.y
+    viewport.mouse_y(mouse_y)
   end
 
   private
