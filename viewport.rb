@@ -74,16 +74,16 @@ class Viewport
   end
 
   def jump_to(new_x, new_y)
-    if new_x + width * @zoom > @map.width * @zoom
-      @x = @map.width * @zoom - width * @zoom
+    if new_x + width > @map.width * @zoom
+      @x = @map.width * @zoom - width
     elsif new_x < 0
       @x = 0
     else
       @x = new_x
     end
 
-    if new_y + height * @zoom > @map.height * @zoom
-      @y = @map.height * @zoom - height * @zoom
+    if new_y + height > @map.height * @zoom
+      @y = @map.height * @zoom - height
     elsif new_y < 0
       @y = 0
     else
