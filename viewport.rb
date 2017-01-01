@@ -92,9 +92,9 @@ class Viewport
   end
 
   def pan_x(dx)
-    if x + dx * @zoom + width * @zoom > @map.width * @zoom
-      @x = @map.width * @zoom - width * @zoom
-    elsif x + dx * @zoom < 0
+    if x + dx + width > @map.width * @zoom
+      @x = @map.width * @zoom - width
+    elsif x + dx < 0
       @x = 0
     else
       @x += dx
@@ -102,8 +102,8 @@ class Viewport
   end
 
   def pan_y(dy)
-    if y + dy * @zoom + height * @zoom > @map.height * @zoom
-      @y = @map.height * @zoom - height * @zoom
+    if y + dy + height > @map.height * @zoom
+      @y = @map.height * @zoom - height
     elsif y + dy * @zoom < 0
       @y = 0
     else

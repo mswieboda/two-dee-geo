@@ -11,11 +11,11 @@ class Hud
     @font = Gosu::Font.new(TEXT_HEIGHT, name: "Courier New")
   end
 
-  def draw
-    draw_bases
+  def draw(diff)
+    draw_bases(diff)
   end
 
-  def draw_bases
+  def draw_bases(diff)
     y_margin = Y_MARGIN
     x_margin = X_MARGIN
 
@@ -41,5 +41,7 @@ class Hud
       y_margin += BASE_SIZE + Y_MARGIN / 2
       x_margin = X_MARGIN
     end
+
+    @font.draw(diff, x_margin, y_margin, 0, 1, 1, @player.color)
   end
 end

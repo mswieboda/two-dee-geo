@@ -32,6 +32,8 @@ class TwoDeeGeo < Gosu::Window
     @space = CP::Space.new
     @space.damping = 0.7
     @dt = (1.0/60.0)
+    @milliseconds = 0
+    @diff = 0
 
     @remove_shapes = []
     @click_visuals = []
@@ -111,6 +113,10 @@ class TwoDeeGeo < Gosu::Window
   def needs_cursor?; true; end
 
   def update
+    new_milliseconds = Gosu.milliseconds
+    @diff = new_milliseconds - @milliseconds
+    @milliseconds = new_milliseconds
+
     SUBSTEPS.times do
       return if done?
       win if win?
@@ -144,6 +150,8 @@ class TwoDeeGeo < Gosu::Window
       @click_visuals.each(&:update)
       cvs_to_remove = @click_visuals.select(&:destroy?).map(&:shape)
       @remove_shapes += cvs_to_remove if cvs_to_remove.any?
+      cvs_to_remove.clear
+      cvs_to_remove = nil
 
       # Remove dead ships
       ships_to_remove = @players.flat_map(&:ships).select(&:destroy?).compact
@@ -157,6 +165,8 @@ class TwoDeeGeo < Gosu::Window
       end.compact
 
       @remove_shapes += ships_to_remove if ships_to_remove.any?
+      ships_to_remove.clear
+      ships_to_remove = nil
 
       # Pan viewport
       @viewport.pan
@@ -172,7 +182,7 @@ class TwoDeeGeo < Gosu::Window
     @dialog_drawables.each(&:draw)
     @viewport.draw
     @mini_map.draw
-    @hud.draw
+    @hud.draw(@diff)
   end
 
   def button_up(id)
