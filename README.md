@@ -25,9 +25,9 @@ Attack the other enemy ship bases, to get a new base to spawn ships.
 # Disclaimer
 
 This game is for educational purposes only and is based on the:
-[https://play.google.com/store/apps/details?id=com.queader.ice&hl=en](ICE - Minimulist Strategy) Android game.
+[ICE - Minimulist Strategy](https://play.google.com/store/apps/details?id=com.queader.ice&hl=en) Android game.
 
 YouTube example: https://www.youtube.com/watch?v=IG7R2JlEjuI
 
-Props to [http://www.icecoldmuffin.com/](Ice Cold Muffin) for a sick game!
+Props to [Ice Cold Muffin](http://www.icecoldmuffin.com/) for a sick game!
 
